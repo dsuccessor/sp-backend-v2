@@ -26,7 +26,9 @@ router.post(
 // Already connected
 router.get('/aggregateBalance', walletHistoryControl.aggregateBalance)
 
-router.put('/debitwallet/:studentId', walletHistoryControl.debitWallet)
+// Already connected
+router.post('/debitwallet', walletHistoryControl.debitWallet)
+
 router.delete('/closewallet/:studentId', walletHistoryControl.delWallet)
 // router.put('/fundwallet', walletHistoryControl.fundWallet)
 

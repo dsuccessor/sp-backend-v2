@@ -12,6 +12,9 @@ const courseRoute = require('./routes/courseRoute')
 const courseFormRoute = require('./routes/courseFormRoute')
 const paymentRoute = require('./routes/paymentRoute')
 const walletHistoryRoute = require('./routes/walletHistoryRoute')
+const feeListRoute = require('./routes/feeListRoute')
+const academicCalendarRoute = require('./routes/academicCalendarRoute')
+const schoolDuesRoute = require('./routes/schoolDuesRoute')
 const cors = require('cors')
 
 // Mongoose configuration
@@ -44,6 +47,12 @@ app.use('/courseform', courseFormRoute)
 app.use('/paymentNotification', paymentRoute)
 
 app.use('/wallet', walletHistoryRoute)
+
+app.use('/paymentadvice', feeListRoute)
+
+app.use('/academiccalendar', academicCalendarRoute)
+
+app.use('/schooldue', schoolDuesRoute)
 
 // Xpress Server connection
 app.listen(port, (error) => {

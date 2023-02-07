@@ -1,5 +1,6 @@
 const studentModel = require('../models/studentModel')
 const adminModel = require('../models/adminModel')
+const academicCalendarModel = require('../models/academicCalendarModel')
 
 const createStudent = async (req, res) => {
   const {
@@ -44,7 +45,6 @@ const createStudent = async (req, res) => {
         } else {
           const { surname, otherName, email, passport, password } = req.body
           adminModel.create({ surname, otherName, email, passport, password })
-
           console.log({ msg: 'Student registeration successful ', data })
           res
             .status(200)
@@ -114,25 +114,55 @@ const updateStudent = async (req, res) => {
   )
 }
 
+const updateById = async (req, res) => {
+  const { id } = req.params
+  studentModel.findOneAndUpdate(
+    { _id: id },
+    req.body,
+    { new: true, runValidators: true },
+    (error, result) => {
+      if (error) {
+        console.log({
+          msg: `Failed to update student record with ID ${id} `,
+          error,
+        })
+        res.status(400).json({
+          msg: `Failed to update student record with ID ${id} `,
+          error,
+        })
+      } else {
+        console.log({
+          msg: `Student record with ID ${id} updated successfully`,
+          result,
+        })
+        res.status(200).json({
+          msg: `Student record with ID ${id} updated successfully`,
+          result,
+        })
+      }
+    },
+  )
+}
+
 const delStudent = async (req, res) => {
-  const { email } = req.params
-  studentModel.findOneAndDelete({ email: email }, (error, result) => {
+  const { id } = req.params
+  studentModel.findOneAndDelete({ _id: id }, (error, result) => {
     if (error) {
       console.log({
-        msg: `Failed to delete student record with ${email} `,
+        msg: `Failed to delete student record with ID ${id} `,
         error,
       })
       res
         .status(400)
-        .json({ msg: `Failed to delete student record with ${email} `, error })
+        .json({ msg: `Failed to delete student record with ID ${id} `, error })
     } else {
       console.log({
-        msg: `Student record found and deleted for ${email} `,
+        msg: `Student record with ID ${id} deleted`,
         result,
       })
       res
         .status(200)
-        .json({ msg: `Student record found and deleted for ${email} `, result })
+        .json({ msg: `Student record with ID ${id} deleted`, result })
     }
   })
 }
@@ -142,5 +172,6 @@ module.exports = {
   fetchAllStudent,
   fetchStudent,
   updateStudent,
+  updateById,
   delStudent,
 }

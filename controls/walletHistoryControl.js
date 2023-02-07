@@ -5,47 +5,54 @@ const fundWallet = async (req, res) => {
   const {
     walletId,
     payment,
+    amount,
+    paymentRef,
     paymentType,
     txnType,
     balanceBefore,
     walletBalance,
   } = req.body
 
-  walletHistoryModel.find({ payment: payment }, (err, result) => {
-    if (result === null || result.length != 0) {
-      console.log({
-        msg: 'Payment already exist on wallet history',
-        result,
-      })
-      res.status(400).json({ msg: 'Payment already exist on wallet history' })
-    } else {
-      walletHistoryModel.create(
-        {
-          walletId,
-          payment,
-          paymentType,
-          txnType,
-          balanceBefore,
-          walletBalance,
-        },
-        (err, data) => {
-          if (err) {
-            console.log({
-              msg: `Unable to fund wallet `,
-              err,
-            })
-            res.status(400).json({ msg: `Unable to fund wallet `, err })
-          } else {
-            console.log({
-              msg: `Wallet funded successful `,
-              data,
-            })
-            res.status(200).json({ msg: `Wallet funded successful ` })
-          }
-        },
-      )
-    }
-  })
+  walletHistoryModel.find(
+    { $or: [{ payment: payment }, { paymentRef: paymentRef }] },
+    (err, result) => {
+      if (result === null || result.length != 0) {
+        console.log({
+          msg: 'Payment already exist on wallet history',
+          result,
+        })
+        res.status(400).json({ msg: 'Payment already exist on wallet history' })
+      } else {
+        walletHistoryModel.create(
+          {
+            walletId,
+            payment,
+            amount,
+            paymentRef,
+            paymentType,
+            txnType,
+            balanceBefore,
+            walletBalance,
+          },
+          (err, data) => {
+            if (err) {
+              console.log({
+                msg: `Unable to fund wallet `,
+                err,
+              })
+              res.status(400).json({ msg: `Unable to fund wallet `, err })
+            } else {
+              console.log({
+                msg: `Wallet funded successful `,
+                data,
+              })
+              res.status(200).json({ msg: `Wallet funded successful ` })
+            }
+          },
+        )
+      }
+    },
+  )
 }
 
 const walletBalance = async (req, res) => {
@@ -816,6 +823,8 @@ const filterForDownload = async (req, res) => {
             var {
               walletId,
               payment,
+              amount,
+              paymentRef,
               paymentType,
               txnType,
               balanceBefore,
@@ -828,7 +837,9 @@ const filterForDownload = async (req, res) => {
               ...result,
               walletId: walletId,
               paymentId: payment?.paymentId,
-              amount: payment?.amount,
+              feeId: payment,
+              amount: amount,
+              paymentRef: paymentRef,
               txnType: txnType,
               bankCredited: payment?.bankName,
               narration: payment?.narration,
@@ -887,6 +898,8 @@ const filterForDownload = async (req, res) => {
                     var {
                       walletId,
                       payment,
+                      amount,
+                      paymentRef,
                       paymentType,
                       txnType,
                       balanceBefore,
@@ -899,7 +912,9 @@ const filterForDownload = async (req, res) => {
                       ...result,
                       walletId: walletId,
                       paymentId: payment?.paymentId,
-                      amount: payment?.amount,
+                      feeId: payment,
+                      amount: amount,
+                      paymentRef: paymentRef,
                       txnType: txnType,
                       bankCredited: payment?.bankName,
                       narration: payment?.narration,
@@ -946,6 +961,8 @@ const filterForDownload = async (req, res) => {
                 var {
                   walletId,
                   payment,
+                  amount,
+                  paymentRef,
                   paymentType,
                   txnType,
                   balanceBefore,
@@ -958,7 +975,9 @@ const filterForDownload = async (req, res) => {
                   ...result,
                   walletId: walletId,
                   paymentId: payment?.paymentId,
-                  amount: payment?.amount,
+                  feeId: payment,
+                  amount: amount,
+                  paymentRef: paymentRef,
                   txnType: txnType,
                   bankCredited: payment?.bankName,
                   narration: payment?.narration,
@@ -1000,6 +1019,8 @@ const filterForDownload = async (req, res) => {
                   var {
                     walletId,
                     payment,
+                    amount,
+                    paymentRef,
                     paymentType,
                     txnType,
                     balanceBefore,
@@ -1012,7 +1033,9 @@ const filterForDownload = async (req, res) => {
                     ...result,
                     walletId: walletId,
                     paymentId: payment?.paymentId,
-                    amount: payment?.amount,
+                    feeId: payment,
+                    amount: amount,
+                    paymentRef: paymentRef,
                     txnType: txnType,
                     bankCredited: payment?.bankName,
                     narration: payment?.narration,
@@ -1057,6 +1080,8 @@ const filterForDownload = async (req, res) => {
                     var {
                       walletId,
                       payment,
+                      amount,
+                      paymentRef,
                       paymentType,
                       txnType,
                       balanceBefore,
@@ -1068,8 +1093,10 @@ const filterForDownload = async (req, res) => {
                     var result = {
                       ...result,
                       walletId: walletId,
+                      feeId: payment,
                       paymentId: payment?.paymentId,
-                      amount: payment?.amount,
+                      amount: amount,
+                      paymentRef: paymentRef,
                       txnType: txnType,
                       bankCredited: payment?.bankName,
                       narration: payment?.narration,
@@ -1115,6 +1142,8 @@ const filterForDownload = async (req, res) => {
                       var {
                         walletId,
                         payment,
+                        amount,
+                        paymentRef,
                         paymentType,
                         txnType,
                         balanceBefore,
@@ -1127,7 +1156,9 @@ const filterForDownload = async (req, res) => {
                         ...result,
                         walletId: walletId,
                         paymentId: payment?.paymentId,
-                        amount: payment?.amount,
+                        feeId: payment,
+                        amount: amount,
+                        paymentRef: paymentRef,
                         txnType: txnType,
                         bankCredited: payment?.bankName,
                         narration: payment?.narration,
@@ -1200,6 +1231,8 @@ const filterForDownload = async (req, res) => {
                               var {
                                 walletId,
                                 payment,
+                                amount,
+                                paymentRef,
                                 paymentType,
                                 txnType,
                                 balanceBefore,
@@ -1212,7 +1245,9 @@ const filterForDownload = async (req, res) => {
                                 ...result,
                                 walletId: walletId,
                                 paymentId: payment?.paymentId,
-                                amount: payment?.amount,
+                                feeId: payment,
+                                amount: amount,
+                                paymentRef: paymentRef,
                                 txnType: txnType,
                                 bankCredited: payment?.bankName,
                                 narration: payment?.narration,
@@ -1261,6 +1296,8 @@ const filterForDownload = async (req, res) => {
                           var {
                             walletId,
                             payment,
+                            amount,
+                            paymentRef,
                             paymentType,
                             txnType,
                             balanceBefore,
@@ -1273,7 +1310,9 @@ const filterForDownload = async (req, res) => {
                             ...result,
                             walletId: walletId,
                             paymentId: payment?.paymentId,
-                            amount: payment?.amount,
+                            feeId: payment,
+                            amount: amount,
+                            paymentRef: paymentRef,
                             txnType: txnType,
                             bankCredited: payment?.bankName,
                             narration: payment?.narration,
@@ -1326,6 +1365,8 @@ const filterForDownload = async (req, res) => {
                             var {
                               walletId,
                               payment,
+                              amount,
+                              paymentRef,
                               paymentType,
                               txnType,
                               balanceBefore,
@@ -1338,7 +1379,9 @@ const filterForDownload = async (req, res) => {
                               ...result,
                               walletId: walletId,
                               paymentId: payment?.paymentId,
-                              amount: payment?.amount,
+                              feeId: payment,
+                              amount: amount,
+                              paymentRef: paymentRef,
                               txnType: txnType,
                               bankCredited: payment?.bankName,
                               narration: payment?.narration,
@@ -1393,6 +1436,8 @@ const filterForDownload = async (req, res) => {
                               var {
                                 walletId,
                                 payment,
+                                amount,
+                                paymentRef,
                                 paymentType,
                                 txnType,
                                 balanceBefore,
@@ -1405,7 +1450,9 @@ const filterForDownload = async (req, res) => {
                                 ...result,
                                 walletId: walletId,
                                 paymentId: payment?.paymentId,
-                                amount: payment?.amount,
+                                feeId: payment,
+                                amount: amount,
+                                paymentRef: paymentRef,
                                 txnType: txnType,
                                 bankCredited: payment?.bankName,
                                 narration: payment?.narration,
@@ -1460,6 +1507,8 @@ const filterForDownload = async (req, res) => {
                                 var {
                                   walletId,
                                   payment,
+                                  amount,
+                                  paymentRef,
                                   paymentType,
                                   txnType,
                                   balanceBefore,
@@ -1472,7 +1521,9 @@ const filterForDownload = async (req, res) => {
                                   ...result,
                                   walletId: walletId,
                                   paymentId: payment?.paymentId,
-                                  amount: payment?.amount,
+                                  feeId: payment,
+                                  amount: amount,
+                                  paymentRef: paymentRef,
                                   txnType: txnType,
                                   bankCredited: payment?.bankName,
                                   narration: payment?.narration,
@@ -1525,6 +1576,8 @@ const filterForDownload = async (req, res) => {
                                   var {
                                     walletId,
                                     payment,
+                                    amount,
+                                    paymentRef,
                                     paymentType,
                                     txnType,
                                     balanceBefore,
@@ -1537,7 +1590,9 @@ const filterForDownload = async (req, res) => {
                                     ...result,
                                     walletId: walletId,
                                     paymentId: payment?.paymentId,
-                                    amount: payment?.amount,
+                                    feeId: payment,
+                                    amount: amount,
+                                    paymentRef: paymentRef,
                                     txnType: txnType,
                                     bankCredited: payment?.bankName,
                                     narration: payment?.narration,
@@ -1597,6 +1652,8 @@ const filterForDownload = async (req, res) => {
                                     var {
                                       walletId,
                                       payment,
+                                      amount,
+                                      paymentRef,
                                       paymentType,
                                       txnType,
                                       balanceBefore,
@@ -1609,7 +1666,9 @@ const filterForDownload = async (req, res) => {
                                       ...result,
                                       walletId: walletId,
                                       paymentId: payment?.paymentId,
-                                      amount: payment?.amount,
+                                      feeId: payment,
+                                      amount: amount,
+                                      paymentRef: paymentRef,
                                       txnType: txnType,
                                       bankCredited: payment?.bankName,
                                       narration: payment?.narration,
@@ -1702,6 +1761,8 @@ const filterForDownload = async (req, res) => {
                                               var {
                                                 walletId,
                                                 payment,
+                                                amount,
+                                                paymentRef,
                                                 paymentType,
                                                 txnType,
                                                 balanceBefore,
@@ -1714,7 +1775,9 @@ const filterForDownload = async (req, res) => {
                                                 ...result,
                                                 walletId: walletId,
                                                 paymentId: payment?.paymentId,
-                                                amount: payment?.amount,
+                                                feeId: payment,
+                                                amount: amount,
+                                                paymentRef: paymentRef,
                                                 txnType: txnType,
                                                 bankCredited: payment?.bankName,
                                                 narration: payment?.narration,
@@ -1784,6 +1847,8 @@ const filterForDownload = async (req, res) => {
                                           var {
                                             walletId,
                                             payment,
+                                            amount,
+                                            paymentRef,
                                             paymentType,
                                             txnType,
                                             balanceBefore,
@@ -1796,7 +1861,9 @@ const filterForDownload = async (req, res) => {
                                             ...result,
                                             walletId: walletId,
                                             paymentId: payment?.paymentId,
-                                            amount: payment?.amount,
+                                            feeId: payment,
+                                            amount: amount,
+                                            paymentRef: paymentRef,
                                             txnType: txnType,
                                             bankCredited: payment?.bankName,
                                             narration: payment?.narration,
@@ -1862,6 +1929,8 @@ const filterForDownload = async (req, res) => {
                                             var {
                                               walletId,
                                               payment,
+                                              amount,
+                                              paymentRef,
                                               paymentType,
                                               txnType,
                                               balanceBefore,
@@ -1874,7 +1943,9 @@ const filterForDownload = async (req, res) => {
                                               ...result,
                                               walletId: walletId,
                                               paymentId: payment?.paymentId,
-                                              amount: payment?.amount,
+                                              feeId: payment,
+                                              amount: amount,
+                                              paymentRef: paymentRef,
                                               txnType: txnType,
                                               bankCredited: payment?.bankName,
                                               narration: payment?.narration,
@@ -1943,6 +2014,8 @@ const filterForDownload = async (req, res) => {
                                               var {
                                                 walletId,
                                                 payment,
+                                                amount,
+                                                paymentRef,
                                                 paymentType,
                                                 txnType,
                                                 balanceBefore,
@@ -1955,7 +2028,9 @@ const filterForDownload = async (req, res) => {
                                                 ...result,
                                                 walletId: walletId,
                                                 paymentId: payment?.paymentId,
-                                                amount: payment?.amount,
+                                                feeId: payment,
+                                                amount: amount,
+                                                paymentRef: paymentRef,
                                                 txnType: txnType,
                                                 bankCredited: payment?.bankName,
                                                 narration: payment?.narration,
@@ -2026,34 +2101,92 @@ const aggregateBalance = async (req, res) => {
   )
 }
 
+// const debitWallet2 = async (req, res) => {
+//   const { studentId } = req.params
+//   walletHistoryModel.findOneAndUpdate(
+//     { studentId: studentId },
+//     req.body,
+//     { new: true, runValidators: true },
+//     (error, result) => {
+//       if (error) {
+//         console.log({
+//           msg: `Failed to debit wallet `,
+//           error,
+//         })
+//         res.status(400).json({
+//           msg: `Failed to debit wallet `,
+//           error,
+//         })
+//       } else {
+//         console.log({
+//           msg: `Wallet debited successfully`,
+//           result,
+//         })
+//         res.status(200).json({
+//           msg: `Wallet debited successfully `,
+//           result,
+//         })
+//       }
+//     },
+//   )
+// }
+
 const debitWallet = async (req, res) => {
-  const { studentId } = req.params
-  walletHistoryModel.findOneAndUpdate(
-    { studentId: studentId },
-    req.body,
-    { new: true, runValidators: true },
-    (error, result) => {
-      if (error) {
-        console.log({
-          msg: `Failed to debit wallet `,
-          error,
-        })
-        res.status(400).json({
-          msg: `Failed to debit wallet `,
-          error,
-        })
-      } else {
-        console.log({
-          msg: `Wallet debited successfully`,
-          result,
-        })
-        res.status(200).json({
-          msg: `Wallet debited successfully `,
-          result,
-        })
-      }
-    },
-  )
+  const {
+    walletId,
+    payment,
+    amount,
+    paymentRef,
+    txnType,
+    balanceBefore,
+    walletBalance,
+  } = req.body
+
+  const paymentType = 'debit'
+
+  walletHistoryModel.find({ paymentRef: paymentRef }, (err, result) => {
+    if (result?.length > 0) {
+      console.log({
+        msg: 'Payment already exist on wallet history',
+        result,
+      })
+      res.status(400).json({ msg: 'Payment already exist on wallet history' })
+    } else {
+      walletHistoryModel.create(
+        {
+          walletId,
+          payment,
+          amount,
+          paymentRef,
+          paymentType,
+          txnType,
+          balanceBefore,
+          walletBalance,
+        },
+        (error, data) => {
+          if (err) {
+            console.log({
+              msg: `Failed to debit wallet `,
+              error,
+            })
+            res.status(400).json({
+              msg: `Failed to debit wallet `,
+              error,
+            })
+          } else {
+            console.log({
+              msg: `Wallet debited successfully`,
+              result,
+            })
+            res.status(200).json({
+              msg: `Wallet debited successfully `,
+              result,
+            })
+          }
+        },
+      )
+    }
+  })
 }
 
 const delWallet = async (req, res) => {

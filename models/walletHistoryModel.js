@@ -10,6 +10,15 @@ const walletHistorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'payment',
     },
+    amount: {
+      type: mongoose.Schema.Types.Decimal128,
+    },
+    paymentRef: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
     paymentType: {
       type: String,
       required: true,
