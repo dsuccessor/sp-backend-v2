@@ -1,50 +1,130 @@
 const paymentModel = require("../models/paymentModel");
-const multer = require("multer");
+const stream = require("stream");
 const fs = require("fs");
 const path = require("path");
+const multer = require("multer");
 const { MulterError } = require("multer");
+const { google } = require("googleapis");
+
 global.payId = Math.floor(Math.random() * 100) + 1;
 
-const multerConfig = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // cb(null, path.join(__dirname, '../uploads/'))
-    cb(null, "payment evidence");
-  },
+// var newPath = `PayEvi-${payId}-${file.originalname}.${ext}`;
 
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split("/")[1];
-    var newPath = `PayEvi-${payId}-${file.originalname}.${ext}`;
-    cb(null, newPath);
-  },
-});
+const paymentNotification = async (req, res) => {
+  const { studentId, bankName, payeeName, amount, narration, paymentDate } =
+    req.body;
 
-const paymentNotification = (req, res) => {
-  const isImage = (req, file, cb) => {
-    const {
-      studentId,
-      bankName,
-      payeeName,
-      amount,
-      narration,
-      paymentDate,
-      fileType,
-    } = req.body;
+  const { uri, name, type, size } = req.file;
 
-    const myExt = fileType?.split("/")[1];
+  const myExt = type?.split("/")[1];
 
-    paymentModel.findOne(
-      { $and: [{ narration }, { amount }] },
-      (err, result) => {
-        if (result !== null && result !== undefined) {
-          console.log({
-            msg: `Payment with narration ${narration} and amount ${amount} already exists`,
-            result,
-          });
+  paymentModel.findOne({ $and: [{ narration }, { amount }] }, (err, result) => {
+    if (result !== null && result !== undefined) {
+      console.log({
+        msg: `Payment with narration ${narration} and amount ${amount} already exists`,
+        result,
+      });
+      console.log(JSON.stringify(file));
+      res.status(400).json({
+        msg: `Payment with narration ${narration} and amount ${amount} already exists`,
+      });
+    } else {
+      // Google Upload Begin
+      const KEYFILEPATH = path.join(__dirname, "kaycadCredential.json");
+      const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
-          res.status(400).json({
-            msg: `Payment with narration ${narration} and amount ${amount} already exists`,
-          });
-        } else {
+      const auth = new google.auth.GoogleAuth({
+        keyFile: KEYFILEPATH,
+        scopes: SCOPES,
+      });
+
+      const uploadFile = async (fileObject, myBuffer) => {
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(myBuffer);
+
+        const drive = await google.drive({ version: "v3", auth: auth });
+
+        const uploadResponse = await drive.files.create({
+          media: {
+            mimeType: fileObject.file.mimetype,
+            body: bufferStream,
+          },
+          requestBody: {
+            name: fileObject.name,
+            parents: ["1oaWZiL8GJF-kHVMJNgk5G5_4sJhN8KB5"],
+          },
+          fields: "id,name",
+        });
+
+        console.log(
+          "Uploaded Data: " +
+            JSON.stringify({
+              data: uploadResponse.data,
+              status: uploadResponse.status,
+              statusText: uploadResponse.statusText,
+            })
+        );
+
+        const grantPermissions = await drive.permissions.create({
+          fileId: uploadResponse.data.id,
+          requestBody: {
+            role: "reader",
+            type: "anyone",
+          },
+        });
+
+        const getUploadedUrl = await drive.files.get({
+          fileId: uploadResponse.data.id,
+          fields: "webViewLink, webContentLink",
+        });
+
+        console.log(
+          "Uploaded Data Url: " +
+            JSON.stringify({
+              data: getUploadedUrl.data,
+              status: getUploadedUrl.status,
+              statusText: getUploadedUrl.statusText,
+            })
+        );
+
+        return await getUploadedUrl.data;
+      };
+
+      try {
+        function base64_encode(myfile) {
+          const str = fs.readFileSync(myfile, "base64");
+          const buffer = Buffer.from(str, "base64");
+          return buffer;
+        }
+
+        var myBuffer = base64_encode(req.file.path);
+        // const convertToBase64 = (imageToConvert) => {
+        //   var reader = new FileReader();
+        //   reader.readAsDataURL(imageToConvert);
+        //   reader.onload = () => {
+        //     console.log("file reaer result =" + reader.result);
+        //     return reader.result;
+        //   };
+        //   reader.onerror = (error) => {
+        //     console.log("file reaer error =" + error);
+        //     return error;
+        //   };
+        // };
+
+        // const imageUrl = convertToBase64(req.file.path);
+
+        // console.log("image url = " + imageUrl);
+
+        const ext = req.file.mimetype?.split("/")[1];
+
+        fileData = {
+          file: req.file,
+          name: `PayEvi-${payId}-${studentId}-${paymentDate}-${bankName}.${ext}`,
+        };
+
+        console.log("fileData = " + JSON.stringify(fileData));
+
+        uploadFile(fileData, myBuffer).then((result) => {
           paymentModel.create(
             {
               studentId,
@@ -52,7 +132,11 @@ const paymentNotification = (req, res) => {
               payeeName,
               amount,
               narration,
-              paymentEvidence: `PayEvi-${payId}-${studentId}-${paymentDate}-${bankName}.${myExt}`,
+              paymentEvidence: result.webViewLink,
+              // paymentEvidence: JSON.stringify({
+              //   fileName: fileData.name,
+              //   fileID: result.id,
+              // }),
               paymentDate,
             },
             (err, result) => {
@@ -66,50 +150,34 @@ const paymentNotification = (req, res) => {
                   msg: "Unable to send Payment Notification, Kindly retry",
                 });
               } else {
-                if (file.mimetype.startsWith("image")) {
-                  cb(null, true);
-                } else {
-                  console.log({
-                    msg: `Wrong file uploaded, Make sure the file uploaded is an image file`,
-                  });
-
-                  res.status(400).json({
-                    msg: `Wrong file uploaded, Make sure the file uploaded is an image file`,
-                  });
-                }
+                console.log({
+                  msg: "Payment Notification sent successfully",
+                });
+                res
+                  .status(200)
+                  .json({ msg: "Payment Notification sent successfully" });
               }
             }
           );
+        });
+      } catch (error) {
+        if (error instanceof multer.MulterError) {
+          console.log({ msg: "Payment Evidence Upload failed", error });
+
+          res
+            .status(400)
+            .json({ msg: "Payment Evidence Upload failed", error });
+        } else {
+          console.log({
+            msg: "Unable to safe uploaded payment evidence ",
+            error,
+          });
+
+          res
+            .status(400)
+            .json({ msg: "Unable to safe uploaded payment evidence ", error });
         }
       }
-    );
-  };
-
-  const postUpload = multer({
-    dest: "payment evidence",
-    storage: multerConfig,
-    fileFilter: isImage,
-  }).single("paymentEvidence");
-
-  postUpload(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      console.log({ msg: "Payment Evidence Upload failed", err });
-
-      res.status(400).json({ msg: "Payment Evidence Upload failed" });
-    } else if (err) {
-      console.log({
-        msg: "Unable to send Payment Notification, Kindly retry",
-        err,
-      });
-      res
-        .status(400)
-        .json({ msg: "Unable to send Payment Notification, Kindly retry" });
-    } else {
-      console.log({
-        msg: "Payment Notification sent successfully",
-      });
-
-      res.status(200).json({ msg: "Payment Notification sent successfully" });
     }
   });
 };

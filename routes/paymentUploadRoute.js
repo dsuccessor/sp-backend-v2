@@ -1,4 +1,4 @@
-const studentControl = require("../controls/studentControl");
+const { paymentNotification } = require("../controls/paymentUploadControl");
 const multer = require("multer");
 const express = require("express");
 const router = express.Router();
@@ -15,15 +15,11 @@ const fileFilter = (req, file, cb) => {
 
 const uploads = multer({ storage, fileFilter });
 
+// Already implemented for user
 router.post(
-  "/register",
-  uploads.single("passport"),
-  studentControl.createStudent
+  "/sendnotification",
+  uploads.single("paymentDetails"),
+  paymentNotification
 );
-router.get("/fetchAll", studentControl.fetchAllStudent);
-router.get("/fetch/:email", studentControl.fetchStudent);
-router.put("/update/:email", studentControl.updateStudent);
-router.put("/updatebyid/:id", studentControl.updateById);
-router.delete("/delete/:id", studentControl.delStudent);
 
 module.exports = router;

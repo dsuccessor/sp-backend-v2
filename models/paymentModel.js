@@ -1,6 +1,6 @@
-const mongoose = require('mongoose')
-const autoIncrement = require('mongoose-auto-increment')
-autoIncrement.initialize(mongoose.connection)
+const mongoose = require("mongoose");
+const autoIncrement = require("mongoose-auto-increment");
+autoIncrement.initialize(mongoose.connection);
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -16,7 +16,7 @@ const paymentSchema = new mongoose.Schema(
     bankName: {
       type: String,
       required: true,
-      enum: ['First Bank', 'Access Bank', 'Kuda MFB', 'GT Bank', 'UBA'],
+      enum: ["First Bank", "Access Bank", "Kuda MFB", "GT Bank", "UBA"],
     },
     payeeName: {
       type: String,
@@ -44,31 +44,31 @@ const paymentSchema = new mongoose.Schema(
     },
     adminConfirmStatus: {
       type: String,
-      default: 'pending',
-      enum: ['approved', 'declined', 'pending'],
+      default: "pending",
+      enum: ["approved", "declined", "pending"],
     },
     declineReason: {
       type: String,
       lowercase: true,
-      default: '-',
+      default: "-",
     },
     adminName: {
       type: String,
       lowercase: true,
-      default: '-',
+      default: "-",
     },
   },
   {
     timestamps: true,
-  },
-)
+  }
+);
 
 paymentSchema.plugin(autoIncrement.plugin, {
-  model: 'payment',
-  field: 'paymentId',
+  model: "payment",
+  field: "paymentId",
   startAt: 101001,
   incrementBy: 255,
-})
-const paymentModel = mongoose.model('payment', paymentSchema)
+});
+const paymentModel = mongoose.model("payment", paymentSchema);
 
-module.exports = paymentModel
+module.exports = paymentModel;

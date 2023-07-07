@@ -1,6 +1,6 @@
-const mongoose = require('mongoose')
-const autoIncrement = require('mongoose-auto-increment')
-autoIncrement.initialize(mongoose.connection)
+const mongoose = require("mongoose");
+const autoIncrement = require("mongoose-auto-increment");
+autoIncrement.initialize(mongoose.connection);
 
 const studentSchema = new mongoose.Schema(
   {
@@ -23,7 +23,7 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
       lowercase: true,
-      enum: ['male', 'female'],
+      enum: ["male", "female"],
     },
     dob: {
       type: Date,
@@ -75,21 +75,21 @@ const studentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
-)
+  }
+);
 
 studentSchema.plugin(autoIncrement.plugin, {
-  model: 'student',
-  field: 'studentId',
+  model: "student",
+  field: "studentId",
   startAt: 10001,
   incrementBy: 395,
-})
+});
 studentSchema.plugin(autoIncrement.plugin, {
-  model: 'student',
-  field: 'matricNo',
+  model: "student",
+  field: "matricNo",
   startAt: 20220001,
   incrementBy: 1,
-})
-const studentModel = mongoose.model('student', studentSchema)
+});
+const studentModel = mongoose.model("student", studentSchema);
 
-module.exports = studentModel
+module.exports = studentModel;
